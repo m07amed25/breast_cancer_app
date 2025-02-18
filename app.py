@@ -8,7 +8,6 @@ from sklearn.preprocessing import StandardScaler
 
 app = Flask(__name__)
 
-# Define NeuralNet class
 class NeuralNet(nn.Module):
   def __init__(self, input_size, hidden_size, output_size):
     super(NeuralNet, self).__init__()
@@ -32,14 +31,11 @@ class NeuralNet(nn.Module):
     return out
 
 
-# Load the trained model
 with open("model.pkl", "rb") as f:
     model = pickle.load(f)
 
-# Set model to evaluation mode
 model.eval()
 
-# Feature names (ensure they match what the model was trained on)
 feature_names = [
     "mean radius", "mean texture", "mean perimeter", "mean area", "mean smoothness",
     "mean compactness", "mean concavity", "mean concave points", "mean symmetry", "mean fractal dimension",
@@ -58,20 +54,20 @@ def index():
         except ValueError:
             return "Invalid input. Please enter valid numbers."
 
-        # Convert to NumPy array and reshape
+        # to NumPy and reshape
         input_array = np.array(input_data, dtype=np.float32).reshape(1, -1)
 
         scaler = StandardScaler()
         input_array = scaler.fit_transform(input_array)
 
-        # Convert NumPy array to PyTorch tensor
+        # NumPy to tensor
         input_tensor = torch.tensor(input_array, dtype=torch.float32).unsqueeze(dim=1)
 
         # Predict using the model
         with torch.no_grad():
             prediction = model(input_tensor)
 
-        # Convert tensor output to scalar
+        #  to scalar
         prediction_value = prediction.item()
         result = "Malignant" if prediction_value > 0.5 else "Benign"
 
@@ -83,21 +79,21 @@ def index():
 @app.route("/predict", methods=["POST"])
 def predict():
     try:
-        # Get input from form and convert to NumPy array
+        # Get input from form
         input_data = np.array([float(x) for x in request.form.values()], dtype=np.float32).reshape(1, -1)
 
-        # Apply scaling
+        # scaling
         scaler = StandardScaler()
         input_data = scaler.fit_transform(input_data)  # Make sure to use the same scaler used in training
 
-        # Convert to tensor
+        # to tensor
         input_tensor = torch.tensor(input_data, dtype=torch.float32).unsqueeze(dim=1)
 
         # Make prediction
         with torch.no_grad():
             output = model(input_tensor)
         
-        # Convert output to scalar
+        # output to scalar
         prediction = output.item()  
         result = "Malignant" if prediction > 0.5 else "Benign"
 
